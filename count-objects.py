@@ -14,10 +14,10 @@ def count_objects(image_path):
     pixels = list(img.getdata())
     width, height = img.size
     img_input = [pixels[i * width:(i + 1) * width] for i in range(height)]
-    
-    # Segment the holes in the image 
+
+    # Segment the holes in the image
     img_holes = get_holes(img_input, width, height)
-    
+
     # Fill the holes in the image
     img_filled = fill_holes(img_input, img_holes, width, height)
 
@@ -36,8 +36,8 @@ def count_objects(image_path):
                     has_holes += 1
 
     # Print the results
-    print("Objects without holes: ", count - has_holes,
-          "\nObjects with holes: ", has_holes)
+    print('Total: ', count, '\nObjects without holes: ', count - has_holes,
+          '\nObjects with holes: ', has_holes, '\n')
 
 
 def flood_fill(pixels, holes, width, height, x, y):
@@ -50,7 +50,7 @@ def flood_fill(pixels, holes, width, height, x, y):
 
     # If the pixel is a hole, mark the object as having a hole
     has_hole = False
-    
+
     # Check if the pixel is a hole in the image with only holes
     if holes[y][x] == 0:
         has_hole = True
@@ -135,11 +135,11 @@ def add_padding(input_pixels):
     return new_pixels
 
 
-def saveImage(width, height, image, distinction=""):
-    img_name = distinction + "imagem" + str(random.randint(0, 10000)) + ".pgm"
-    type_img = "P2" + "\n"
-    size = str(width) + " " + str(height) + "\n"
-    header = [type_img, size, "255\n"]
+def saveImage(width, height, image, distinction=''):
+    img_name = distinction + 'imagem' + str(random.randint(0, 10000)) + '.pgm'
+    type_img = 'P2' + '\n'
+    size = str(width) + ' ' + str(height) + '\n'
+    header = [type_img, size, '255\n']
 
     file_img = open(img_name, 'w')
 
@@ -156,4 +156,7 @@ def saveImage(width, height, image, distinction=""):
     file_img.close()
 
 
+print('--------------- CASE 1 ---------------')
 count_objects('C:/Users/Jorge/Desktop/projeto-pi/teste.pbm')
+print('--------------- CASE 2 ---------------')
+count_objects('C:/Users/Jorge/Desktop/projeto-pi/teste1.pbm')
