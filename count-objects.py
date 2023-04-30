@@ -57,11 +57,17 @@ def flood_fill(pixels, holes, width, height, x, y):
     if holes[y][x] == 0:
         has_hole = True
 
-    # Recursively flood fill surrounding pixels and checks for holes
+    # Recursively flood fill surrounding 8 pixels and checks for holes
+    has_hole = flood_fill(pixels, holes, width, height, x - 1, y - 1) or has_hole
+    has_hole = flood_fill(pixels, holes, width, height, x, y - 1) or has_hole
+    has_hole = flood_fill(pixels, holes, width, height, x + 1, y - 1) or has_hole
+    
     has_hole = flood_fill(pixels, holes, width, height, x + 1, y) or has_hole
     has_hole = flood_fill(pixels, holes, width, height, x - 1, y) or has_hole
+    
+    has_hole = flood_fill(pixels, holes, width, height, x - 1, y + 1) or has_hole
     has_hole = flood_fill(pixels, holes, width, height, x, y + 1) or has_hole
-    has_hole = flood_fill(pixels, holes, width, height, x, y - 1) or has_hole
+    has_hole = flood_fill(pixels, holes, width, height, x + 1, y + 1) or has_hole
 
     return has_hole
 
