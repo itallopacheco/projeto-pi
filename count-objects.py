@@ -6,7 +6,7 @@ import sys
 sys.setrecursionlimit(1000000)
 
 
-def count_objects(image_path):
+def count_objects(image_path, case=0):
     # Open the image file
     img = Image.open(image_path)
 
@@ -32,7 +32,8 @@ def count_objects(image_path):
                 # Flood fill the object with white
                 has_hole = flood_fill(
                     img_filled, img_holes, width, height, x, y)
-                # saveImage(width, height, get_diff(img_input, img_filled, width, height), distinction=count)
+                saveImage(width, height, get_diff(
+                    img_input, img_filled, width, height), distinction=str(case) + "-" + str(count))
                 if has_hole:
                     has_holes += 1
 
@@ -135,19 +136,22 @@ def add_padding(input_pixels):
 
     return new_pixels
 
+
 def get_diff(pixels, new_pixels, width, height):
     c_pixels = copy.deepcopy(pixels)
     c_new_pixels = copy.deepcopy(new_pixels)
-    
+
     for y in range(height):
         for x in range(width):
             if c_pixels[y][x] == 0 and c_new_pixels[y][x] == 255:
                 c_pixels[y][x] = 128
-    
+
     return c_pixels
 
+
 def saveImage(width, height, image, distinction=''):
-    img_name = str(distinction) + 'imagem' + str(random.randint(0, 10000)) + '.pgm'
+    img_name = str(distinction) + 'imagem' + \
+        str(random.randint(0, 10000)) + '.pgm'
     type_img = 'P2' + '\n'
     size = str(width) + ' ' + str(height) + '\n'
     header = [type_img, size, '255\n']
@@ -168,6 +172,6 @@ def saveImage(width, height, image, distinction=''):
 
 
 print('--------------- CASE 1 ---------------')
-count_objects('C:/Users/Jorge/Desktop/projeto-pi/teste.pbm')
+count_objects('C:/Users/Jorge/Desktop/projeto-pi/teste.pbm', 1)
 print('--------------- CASE 2 ---------------')
-count_objects('C:/Users/Jorge/Desktop/projeto-pi/teste1.pbm')
+count_objects('C:/Users/Jorge/Desktop/projeto-pi/teste1.pbm', 2)
