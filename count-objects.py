@@ -3,7 +3,7 @@ import copy
 import random
 import sys
 
-sys.setrecursionlimit(10000)
+sys.setrecursionlimit(1000000)
 
 
 def count_objects(image_path):
@@ -32,6 +32,7 @@ def count_objects(image_path):
                 # Flood fill the object with white
                 has_hole = flood_fill(
                     img_filled, img_holes, width, height, x, y)
+                # saveImage(width, height, get_diff(img_input, img_filled, width, height), distinction=count)
                 if has_hole:
                     has_holes += 1
 
@@ -134,9 +135,19 @@ def add_padding(input_pixels):
 
     return new_pixels
 
+def get_diff(pixels, new_pixels, width, height):
+    c_pixels = copy.deepcopy(pixels)
+    c_new_pixels = copy.deepcopy(new_pixels)
+    
+    for y in range(height):
+        for x in range(width):
+            if c_pixels[y][x] == 0 and c_new_pixels[y][x] == 255:
+                c_pixels[y][x] = 128
+    
+    return c_pixels
 
 def saveImage(width, height, image, distinction=''):
-    img_name = distinction + 'imagem' + str(random.randint(0, 10000)) + '.pgm'
+    img_name = str(distinction) + 'imagem' + str(random.randint(0, 10000)) + '.pgm'
     type_img = 'P2' + '\n'
     size = str(width) + ' ' + str(height) + '\n'
     header = [type_img, size, '255\n']
