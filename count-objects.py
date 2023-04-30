@@ -38,8 +38,9 @@ def count_objects(image_path, case=0):
                     has_holes += 1
 
     # Print the results
-    print('Total de objetos: ', count, '\nObjetos sem furos: ', count - has_holes,
-          '\nObjetos com furos: ', has_holes, '\n')
+    print('Total de objetos: ', count)
+    print('Objetos sem furos: ', count - has_holes)
+    print('Objetos com furos: ', has_holes, '\n')
 
 
 def flood_fill(pixels, holes, width, height, x, y):
