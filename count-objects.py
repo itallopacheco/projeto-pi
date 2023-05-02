@@ -3,6 +3,7 @@ import copy
 import random
 import sys
 import time
+import os
 
 sys.setrecursionlimit(1000000)
 
@@ -19,12 +20,20 @@ def count_objects(image_path, case=0):
     img_input = [pixels[i * width:(i + 1) * width] for i in range(height)]
     
     img_input = add_padding(img_input)
+    width += 4
+    height += 4
 
     # Segment the holes in the image
     img_holes = get_holes(img_input, width, height)
 
     # Fill the holes in the image
     img_filled = fill_holes(img_input, img_holes, width, height)
+    
+    img_folder = os.path.join('resultados', case)
+    if not os.path.exists(img_folder):
+        os.makedirs(img_folder)
+
+    
 
     # Count the objects
     count = 0
@@ -38,7 +47,7 @@ def count_objects(image_path, case=0):
                 has_hole = flood_fill(
                     img_filled, img_holes, width, height, x, y)
                 saveImage(width, height, get_diff(
-                    img_input, img_filled, width, height), distinction=str(case) + "-" + str(count))
+                    img_input, img_filled, width, height), img_folder ,str(count))
                 if has_hole:
                     has_holes += 1
 
@@ -124,31 +133,18 @@ def fill_holes(objects, holes, width, height):
 
 
 def add_padding(input_pixels):
+    # Create a deep copy of the input_pixels to avoid modifying the original data
     pixels = copy.deepcopy(input_pixels)
     rows = len(pixels)
     cols = len(pixels[0])
     new_rows = rows + 4
     new_cols = cols + 4
-    new_pixels = [[0 for j in range(new_cols)] for i in range(new_rows)]
-
-    # Set the values of the new rows to 255
-    for i in range(2):
-        for j in range(new_cols):
-            new_pixels[i][j] = 255
-        for j in range(new_cols - 2, new_cols):
-            new_pixels[new_rows - i - 1][j] = 255
-
-    # Set the values of the new columns to 255
-    for i in range(2, new_rows - 2):
-        for j in range(2):
-            new_pixels[i][j] = 255
-        for j in range(new_cols - 2, new_cols):
-            new_pixels[i][j] = 255
+    new_pixels = [[255 for j in range(new_cols)] for i in range(new_rows)]
 
     # Copy the values from the original matrix
     for i in range(rows):
         for j in range(cols):
-            new_pixels[i+2][j+2] = pixels[i][j]
+            new_pixels[i + 2][j + 2] = pixels[i][j]
 
     return new_pixels
 
@@ -165,21 +161,20 @@ def get_diff(pixels, new_pixels, width, height):
     return c_pixels
 
 
-def saveImage(width, height, image, distinction=''):
-    img_name = str(distinction) + 'imagem' + \
-        str(random.randint(0, 10000)) + '.pgm'
+def saveImage(width, height, image, folder_path, distinction='' ):
+    img_name = str(distinction) +'.pgm'
     type_img = 'P2' + '\n'
     size = str(width) + ' ' + str(height) + '\n'
     header = [type_img, size, '255\n']
 
-    file_img = open(img_name, 'w')
+    img_path = os.path.join(folder_path, img_name)
+    file_img = open(img_path, 'w')
 
     # Escreve o cabeçalho
     for content in header:
         file_img.write(content)
 
     for i in range(height):
-
         for j in range(width):
             pixel = str(image[i][j]) + '\n'
             file_img.write(pixel)
@@ -188,29 +183,31 @@ def saveImage(width, height, image, distinction=''):
     
 
 # BASIC TESTS
-print('--------------- CASE 50x50 ---------------')
-count_objects('./50x50.pbm', '50x50')
-print('--------------- CASE 100x100 ---------------')
-count_objects('./100x100.pbm', '100x100')
-print('--------------- CASE 100x100 ---------------')
-count_objects('./150x150.pbm', '100x100')
-print('--------------- CASE 1 ---------------')
-count_objects('./teste.pbm', 1)
-print('--------------- CASE 2 ---------------')
-count_objects('./teste1.pbm', 2)
+# print('--------------- CASE 50x50 ---------------')
+# count_objects('./testes/50x50.pbm', '50x50')
+# print('--------------- CASE 100x100 ---------------')
+# count_objects('./testes/100x100.pbm', '100x100')
+# print('--------------- CASE 150x150 ---------------')
+# count_objects('./testes/150x150.pbm', '150x150')
+# print('--------------- CASE 1 ---------------')
+# count_objects('./testes/teste.pbm', '1')
+# print('--------------- CASE 2 ---------------')
+# count_objects('./testes/teste1.pbm', '2')
 
-# 8-NEIGHBOURS TEST
-print('--------------- CASE 3 ---------------')
-count_objects('./teste2.pbm', 3)
+# # 8-NEIGHBOURS TEST
+# print('--------------- CASE 3 ---------------')
+# count_objects('./testes/teste2.pbm', '3')
 
 # PADDING TEST
-print('--------------- CASE 4 ---------------')
-count_objects('./teste3.pbm', 4)
+# print('--------------- CASE 4 ---------------')
+#count_objects('./testes/teste3.pbm', '4')
 
-# MISC TESTS
-print('--------------- CASE MARIO ---------------')
-count_objects('./testemario.pbm', 'mario')
-print('--------------- CASE DECEPTICONS ---------------')
-count_objects('./megatron.pbm', 'DECEPTICONS')
-print('--------------- CASE AUTOBOTS ---------------')
-count_objects('./optimusprime.pbm', 'autobots')
+count_objects('./testes/bordinha.pbm', '5')
+
+# # MISC TESTS
+# print('--------------- CASE MARIO ---------------')
+# count_objects('./testes/testemario.pbm', 'mario')
+# print('--------------- CASE DECEPTICONS ---------------')
+# count_objects('./testes/megatron.pbm', 'DECEPTICONS')
+# print('--------------- CASE AUTOBOTS ---------------')
+# count_objects('./testes/optimusprime.pbm', 'AUTOBOTS')
