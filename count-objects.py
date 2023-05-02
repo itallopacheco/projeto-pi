@@ -201,7 +201,6 @@ def start_tests():
 
     # Clear previous files
     open('./resultados.txt', 'w').close()
-    shutil.rmtree('./resultados')
 
     # Calls the count_objects function for each image
     for file in filenames:
