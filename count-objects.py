@@ -4,6 +4,7 @@ import random
 import sys
 import time
 import os
+from os import walk
 
 sys.setrecursionlimit(1000000)
 
@@ -18,7 +19,7 @@ def count_objects(image_path, case=0):
     pixels = list(img.getdata())
     width, height = img.size
     img_input = [pixels[i * width:(i + 1) * width] for i in range(height)]
-    
+
     img_input = add_padding(img_input)
     width += 4
     height += 4
@@ -28,12 +29,10 @@ def count_objects(image_path, case=0):
 
     # Fill the holes in the image
     img_filled = fill_holes(img_input, img_holes, width, height)
-    
+
     img_folder = os.path.join('resultados', case)
     if not os.path.exists(img_folder):
         os.makedirs(img_folder)
-
-    
 
     # Count the objects
     count = 0
@@ -47,18 +46,23 @@ def count_objects(image_path, case=0):
                 has_hole = flood_fill(
                     img_filled, img_holes, width, height, x, y)
                 saveImage(width, height, get_diff(
-                    img_input, img_filled, width, height), img_folder ,str(count))
+                    img_input, img_filled, width, height), img_folder, str(count))
                 if has_hole:
                     has_holes += 1
 
     end = time.perf_counter()
 
     # Print the results
-    print('Total de objetos: ', count)
-    print('Objetos sem furos: ', count - has_holes)
-    print('Objetos com furos: ', has_holes)
-    print(f"Caso {case} terminou em {end - begin:0.1f} segundos")
+    print_results(end - begin, count, has_holes, case)
 
+
+def print_results(time, count, has_holes, case):
+    print(f'--------------- CASE {case} ---------------\nCaso {case} terminou em {time:0.1f} segundos\nTotal de objetos: {count}\nObjetos sem furos: {count - has_holes}\nObjetos com furos: {has_holes}\n')
+
+    open('./resultados.txt', 'w').close()
+    with open("./resultados.txt", "a") as arquivo:
+        arquivo.write(
+            f'--------------- CASE {case} ---------------\nCaso {case} terminou em {time:0.1f} segundos\nTotal de objetos: {count}\nObjetos sem furos: {count - has_holes}\nObjetos com furos: {has_holes}\n')
 
 
 def flood_fill(pixels, holes, width, height, x, y):
@@ -77,16 +81,20 @@ def flood_fill(pixels, holes, width, height, x, y):
         has_hole = True
 
     # Recursively flood fill surrounding 8 pixels and checks for holes
-    has_hole = flood_fill(pixels, holes, width, height, x - 1, y - 1) or has_hole
+    has_hole = flood_fill(pixels, holes, width, height,
+                          x - 1, y - 1) or has_hole
     has_hole = flood_fill(pixels, holes, width, height, x, y - 1) or has_hole
-    has_hole = flood_fill(pixels, holes, width, height, x + 1, y - 1) or has_hole
-    
+    has_hole = flood_fill(pixels, holes, width, height,
+                          x + 1, y - 1) or has_hole
+
     has_hole = flood_fill(pixels, holes, width, height, x + 1, y) or has_hole
     has_hole = flood_fill(pixels, holes, width, height, x - 1, y) or has_hole
-    
-    has_hole = flood_fill(pixels, holes, width, height, x - 1, y + 1) or has_hole
+
+    has_hole = flood_fill(pixels, holes, width, height,
+                          x - 1, y + 1) or has_hole
     has_hole = flood_fill(pixels, holes, width, height, x, y + 1) or has_hole
-    has_hole = flood_fill(pixels, holes, width, height, x + 1, y + 1) or has_hole
+    has_hole = flood_fill(pixels, holes, width, height,
+                          x + 1, y + 1) or has_hole
 
     return has_hole
 
@@ -161,8 +169,8 @@ def get_diff(pixels, new_pixels, width, height):
     return c_pixels
 
 
-def saveImage(width, height, image, folder_path, distinction='' ):
-    img_name = str(distinction) +'.pgm'
+def saveImage(width, height, image, folder_path, distinction=''):
+    img_name = str(distinction) + '.pgm'
     type_img = 'P2' + '\n'
     size = str(width) + ' ' + str(height) + '\n'
     header = [type_img, size, '255\n']
@@ -180,34 +188,11 @@ def saveImage(width, height, image, folder_path, distinction='' ):
             file_img.write(pixel)
 
     file_img.close()
-    
 
-# BASIC TESTS
-# print('--------------- CASE 50x50 ---------------')
-# count_objects('./testes/50x50.pbm', '50x50')
-# print('--------------- CASE 100x100 ---------------')
-# count_objects('./testes/100x100.pbm', '100x100')
-# print('--------------- CASE 150x150 ---------------')
-# count_objects('./testes/150x150.pbm', '150x150')
-# print('--------------- CASE 1 ---------------')
-# count_objects('./testes/teste.pbm', '1')
-# print('--------------- CASE 2 ---------------')
-# count_objects('./testes/teste1.pbm', '2')
 
-# # 8-NEIGHBOURS TEST
-# print('--------------- CASE 3 ---------------')
-# count_objects('./testes/teste2.pbm', '3')
+# Load all images from the 'testes' folder
+filenames = next(walk('./testes'), (None, None, []))[2]
 
-# PADDING TEST
-# print('--------------- CASE 4 ---------------')
-#count_objects('./testes/teste3.pbm', '4')
-
-count_objects('./testes/bordinha.pbm', '5')
-
-# # MISC TESTS
-# print('--------------- CASE MARIO ---------------')
-# count_objects('./testes/testemario.pbm', 'mario')
-# print('--------------- CASE DECEPTICONS ---------------')
-# count_objects('./testes/megatron.pbm', 'DECEPTICONS')
-# print('--------------- CASE AUTOBOTS ---------------')
-# count_objects('./testes/optimusprime.pbm', 'AUTOBOTS')
+# Calls the count_objects function for each image
+for file in filenames:
+    count_objects('./testes/' + file, file.split(".")[0])

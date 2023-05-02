@@ -4,12 +4,13 @@ import sys
 import time
 import os
 import threading
-
+from os import walk
 
 sys.setrecursionlimit(1000000)
 
 
 def count_objects(image_path, case=0):
+
     begin = time.perf_counter()
 
     # Open the image file
@@ -42,9 +43,11 @@ def count_objects(image_path, case=0):
             # If we find a black pixel, start a new object
             if img_filled[y][x] == 0:
                 count += 1
+
                 # Flood fill the object with white
                 has_hole = flood_fill(
                     img_filled, img_holes, width, height, x, y)
+
                 saveImage(width, height, get_diff(
                     img_input, img_filled, width, height), img_folder, str(count))
                 if has_hole:
@@ -53,10 +56,16 @@ def count_objects(image_path, case=0):
     end = time.perf_counter()
 
     # Print the results
-    print('Total de objetos: ', count)
-    print('Objetos sem furos: ', count - has_holes)
-    print('Objetos com furos: ', has_holes)
-    print(f"Caso {case} terminou em {end - begin:0.1f} segundos")
+    print_results(end - begin, count, has_holes, case)
+
+
+def print_results(time, count, has_holes, case):
+    print(f'--------------- CASE {case} ---------------\nCaso {case} terminou em {time:0.1f} segundos\nTotal de objetos: {count}\nObjetos sem furos: {count - has_holes}\nObjetos com furos: {has_holes}\n')
+
+    open('./resultados.txt', 'w').close()
+    with open("./resultados.txt", "a") as arquivo:
+        arquivo.write(
+            f'--------------- CASE {case} ---------------\nCaso {case} terminou em {time:0.1f} segundos\nTotal de objetos: {count}\nObjetos sem furos: {count - has_holes}\nObjetos com furos: {has_holes}\n')
 
 
 def flood_fill(pixels, holes, width, height, x, y):
@@ -74,21 +83,21 @@ def flood_fill(pixels, holes, width, height, x, y):
     if holes[y][x] == 0:
         has_hole = True
 
-    # Create a list to hold the threads
-    threads = []
+    # Recursively flood fill surrounding 8 pixels and checks for holes
+    has_hole = flood_fill(pixels, holes, width, height,
+                          x - 1, y - 1) or has_hole
+    has_hole = flood_fill(pixels, holes, width, height, x, y - 1) or has_hole
+    has_hole = flood_fill(pixels, holes, width, height,
+                          x + 1, y - 1) or has_hole
 
-    # Create a thread for each surrounding pixel and start it
-    for dx, dy in [(-1, -1), (0, -1), (1, -1), (1, 0), (-1, 0), (-1, 1), (0, 1), (1, 1)]:
-        x2, y2 = x + dx, y + dy
-        if x2 >= 0 and x2 < width and y2 >= 0 and y2 < height and pixels[y2][x2] != 255:
-            thread = threading.Thread(target=flood_fill, args=(
-                pixels, holes, width, height, x2, y2))
-            thread.start()
-            threads.append(thread)
+    has_hole = flood_fill(pixels, holes, width, height, x + 1, y) or has_hole
+    has_hole = flood_fill(pixels, holes, width, height, x - 1, y) or has_hole
 
-    # Wait for all threads to finish and check for holes
-    for thread in threads:
-        has_hole = thread.join() or has_hole
+    has_hole = flood_fill(pixels, holes, width, height,
+                          x - 1, y + 1) or has_hole
+    has_hole = flood_fill(pixels, holes, width, height, x, y + 1) or has_hole
+    has_hole = flood_fill(pixels, holes, width, height,
+                          x + 1, y + 1) or has_hole
 
     return has_hole
 
@@ -110,8 +119,11 @@ def flood_fill_background(pixels, width, height, x, y):
         if x2 >= 0 and x2 < width and y2 >= 0 and y2 < height and pixels[y2][x2] != 0:
             thread = threading.Thread(
                 target=flood_fill_background, args=(pixels, width, height, x2, y2))
-            thread.start()
             threads.append(thread)
+
+    # Starts the threads
+    for thread in threads:
+        thread.start()
 
     # Wait for all threads to finish
     for thread in threads:
@@ -194,34 +206,9 @@ def saveImage(width, height, image, folder_path, distinction=''):
     file_img.close()
 
 
-# BASIC TESTS
-print('--------------- CASE 50x50 ---------------')
-count_objects('./testes/50x50.pbm', '50x50')
-print('--------------- CASE 100x100 ---------------')
-count_objects('./testes/100x100.pbm', '100x100')
-print('--------------- CASE 150x150 ---------------')
-count_objects('./testes/150x150.pbm', '150x150')
-print('--------------- CASE GENERICSTUFF ---------------')
-count_objects('./testes/200x200.pbm', 'genericstuff')
-print('--------------- CASE 1 ---------------')
-count_objects('./testes/teste.pbm', '1')
-print('--------------- CASE 2 ---------------')
-count_objects('./testes/teste1.pbm', '2')
+# Load all images from the 'testes' folder
+filenames = next(walk('./testes'), (None, None, []))[2]
 
-# 8-NEIGHBOURS TEST
-print('--------------- CASE 3 ---------------')
-count_objects('./testes/teste2.pbm', '3')
-
-# PADDING TEST
-print('--------------- CASE 4 ---------------')
-count_objects('./testes/teste3.pbm', '4')
-print('--------------- CASE BORDA ---------------')
-count_objects('./testes/bordinha.pbm', '4')
-
-# MISC TESTS
-print('--------------- CASE MARIO ---------------')
-count_objects('./testes/testemario.pbm', 'mario')
-print('--------------- CASE DECEPTICONS ---------------')
-count_objects('./testes/megatron.pbm', 'DECEPTICONS')
-print('--------------- CASE AUTOBOTS ---------------')
-count_objects('./testes/optimusprime.pbm', 'AUTOBOTS')
+# Calls the count_objects function for each image
+for file in filenames:
+    count_objects('./testes/' + file, file.split(".")[0])
