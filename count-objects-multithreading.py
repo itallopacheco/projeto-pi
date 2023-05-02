@@ -108,7 +108,8 @@ def flood_fill_background(pixels, width, height, x, y):
     for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
         x2, y2 = x + dx, y + dy
         if x2 >= 0 and x2 < width and y2 >= 0 and y2 < height and pixels[y2][x2] != 0:
-            thread = threading.Thread(target=flood_fill_background, args=(pixels, width, height, x2, y2))
+            thread = threading.Thread(
+                target=flood_fill_background, args=(pixels, width, height, x2, y2))
             thread.start()
             threads.append(thread)
 
@@ -191,9 +192,6 @@ def saveImage(width, height, image, folder_path, distinction=''):
             file_img.write(pixel)
 
     file_img.close()
-    
-
-
 
 
 # BASIC TESTS
