@@ -2,11 +2,14 @@ from PIL import Image
 import copy
 import random
 import sys
+import time
 
 sys.setrecursionlimit(1000000)
 
 
 def count_objects(image_path, case=0):
+    begin = time.perf_counter()
+
     # Open the image file
     img = Image.open(image_path)
 
@@ -39,10 +42,14 @@ def count_objects(image_path, case=0):
                 if has_hole:
                     has_holes += 1
 
+    end = time.perf_counter()
+
     # Print the results
     print('Total de objetos: ', count)
     print('Objetos sem furos: ', count - has_holes)
-    print('Objetos com furos: ', has_holes, '\n')
+    print('Objetos com furos: ', has_holes)
+    print(f"Caso {case} terminou em {end - begin:0.1f} segundos")
+
 
 
 def flood_fill(pixels, holes, width, height, x, y):
@@ -178,15 +185,32 @@ def saveImage(width, height, image, distinction=''):
             file_img.write(pixel)
 
     file_img.close()
+    
 
-
+# BASIC TESTS
+print('--------------- CASE 50x50 ---------------')
+count_objects('./50x50.pbm', '50x50')
+print('--------------- CASE 100x100 ---------------')
+count_objects('./100x100.pbm', '100x100')
+print('--------------- CASE 100x100 ---------------')
+count_objects('./150x150.pbm', '100x100')
 print('--------------- CASE 1 ---------------')
 count_objects('./teste.pbm', 1)
 print('--------------- CASE 2 ---------------')
 count_objects('./teste1.pbm', 2)
+
+# 8-NEIGHBOURS TEST
 print('--------------- CASE 3 ---------------')
 count_objects('./teste2.pbm', 3)
+
+# PADDING TEST
 print('--------------- CASE 4 ---------------')
 count_objects('./teste3.pbm', 4)
+
+# MISC TESTS
 print('--------------- CASE MARIO ---------------')
 count_objects('./testemario.pbm', 'mario')
+print('--------------- CASE DECEPTICONS ---------------')
+count_objects('./megatron.pbm', 'DECEPTICONS')
+print('--------------- CASE AUTOBOTS ---------------')
+count_objects('./optimusprime.pbm', 'autobots')
