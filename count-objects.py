@@ -14,6 +14,8 @@ def count_objects(image_path, case=0):
     pixels = list(img.getdata())
     width, height = img.size
     img_input = [pixels[i * width:(i + 1) * width] for i in range(height)]
+    
+    img_input = add_padding(img_input)
 
     # Segment the holes in the image
     img_holes = get_holes(img_input, width, height)
@@ -179,6 +181,12 @@ def saveImage(width, height, image, distinction=''):
 
 
 print('--------------- CASE 1 ---------------')
-count_objects('C:/Users/Jorge/Desktop/projeto-pi/teste.pbm', 1)
+count_objects('./teste.pbm', 1)
 print('--------------- CASE 2 ---------------')
-count_objects('C:/Users/Jorge/Desktop/projeto-pi/teste1.pbm', 2)
+count_objects('./teste1.pbm', 2)
+print('--------------- CASE 3 ---------------')
+count_objects('./teste2.pbm', 3)
+print('--------------- CASE 4 ---------------')
+count_objects('./teste3.pbm', 4)
+print('--------------- CASE MARIO ---------------')
+count_objects('./testemario.pbm', 'mario')
