@@ -1,10 +1,10 @@
 from PIL import Image
 import copy
-import random
 import sys
 import time
 import os
 from os import walk
+import shutil
 
 sys.setrecursionlimit(1000000)
 
@@ -59,7 +59,6 @@ def count_objects(image_path, case=0):
 def print_results(time, count, has_holes, case):
     print(f'--------------- CASE {case} ---------------\nCaso {case} terminou em {time:0.1f} segundos\nTotal de objetos: {count}\nObjetos sem furos: {count - has_holes}\nObjetos com furos: {has_holes}\n')
 
-    open('./resultados.txt', 'w').close()
     with open("./resultados.txt", "a") as arquivo:
         arquivo.write(
             f'--------------- CASE {case} ---------------\nCaso {case} terminou em {time:0.1f} segundos\nTotal de objetos: {count}\nObjetos sem furos: {count - has_holes}\nObjetos com furos: {has_holes}\n')
@@ -190,9 +189,32 @@ def saveImage(width, height, image, folder_path, distinction=''):
     file_img.close()
 
 
-# Load all images from the 'testes' folder
-filenames = next(walk('./testes'), (None, None, []))[2]
+def start_tests():
+    # Change recursion limit
+    sys.setrecursionlimit(1000000)
 
-# Calls the count_objects function for each image
-for file in filenames:
-    count_objects('./testes/' + file, file.split(".")[0])
+    # Load all images from the 'testes' folder
+    filenames = next(walk('./testes'), (None, None, []))[2]
+
+    if filenames == []:
+        print("No images found in the 'testes' folder")
+
+    # Clear previous files
+    open('./resultados.txt', 'w').close()
+    shutil.rmtree('./resultados')
+
+    # Calls the count_objects function for each image
+    for file in filenames:
+        count_objects('./testes/' + file, file.split(".")[0])
+
+    var = input("Deseja apagar a pasta 'resultados'? (s/n): ")
+    if var == 's':
+        shutil.rmtree('./resultados')
+    elif var == 'n':
+        input("Você pode encontrar os resultados na pasta 'resultados'")
+    else:
+        print("Opção inválida")
+
+
+# Run the tests
+start_tests()
