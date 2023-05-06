@@ -5,6 +5,7 @@ import time
 import os
 from os import walk
 import shutil
+from queue import Queue
 
 sys.setrecursionlimit(1000000)
 
@@ -94,34 +95,39 @@ def print_results(time, count, has_holes, case):
 
 """
 def flood_fill(pixels, holes, width, height, x, y):
-    # Caso Base: O pixel está fora dos limites da imagem ou já é branco
-    if x < 0 or y < 0 or x >= width or y >= height or pixels[y][x] == 255:
-        return False
-
-    # Pintamos o pixel de branco
-    pixels[y][x] = 255
+    # Cria uma fila e adiciona o pixel inicial
+    q = Queue()
+    q.put((x, y))
 
     has_hole = False
 
-    # Checa na imagem de buracos se o pixel atual é um buraco
-    if holes[y][x] == 0:
-        has_hole = True
+    # Enquanto a fila não estiver vazia
+    while not q.empty():
+        # Remove o primeiro elemento da fila
+        x, y = q.get()
 
-    # Preenche os pixeis da vizinhança 8 e tbm verifica se os objetos tem buracos
-    has_hole = flood_fill(pixels, holes, width, height,
-                          x - 1, y - 1) or has_hole
-    has_hole = flood_fill(pixels, holes, width, height, x, y - 1) or has_hole
-    has_hole = flood_fill(pixels, holes, width, height,
-                          x + 1, y - 1) or has_hole
+        # Caso Base: O pixel está fora dos limites da imagem ou já é branco
+        if x < 0 or y < 0 or x >= width or y >= height or pixels[y][x] == 255:
+            continue
 
-    has_hole = flood_fill(pixels, holes, width, height, x + 1, y) or has_hole
-    has_hole = flood_fill(pixels, holes, width, height, x - 1, y) or has_hole
+        # Pintamos o pixel de branco
+        pixels[y][x] = 255
 
-    has_hole = flood_fill(pixels, holes, width, height,
-                          x - 1, y + 1) or has_hole
-    has_hole = flood_fill(pixels, holes, width, height, x, y + 1) or has_hole
-    has_hole = flood_fill(pixels, holes, width, height,
-                          x + 1, y + 1) or has_hole
+        # Checa na imagem de buracos se o pixel atual é um buraco
+        if holes[y][x] == 0:
+            has_hole = True
+
+        # Adiciona os pixels ao redor na fila
+        q.put((x - 1, y - 1))
+        q.put((x, y - 1))
+        q.put((x + 1, y - 1))
+
+        q.put((x + 1, y))
+        q.put((x - 1, y))
+
+        q.put((x - 1, y + 1))
+        q.put((x, y + 1))
+        q.put((x + 1, y + 1))
 
     return has_hole
 
@@ -129,19 +135,27 @@ def flood_fill(pixels, holes, width, height, x, y):
     Essa funcao vai preencher o fundo de uma imagem com a cor branca.
 """
 def flood_fill_background(pixels, width, height, x, y):
-    # Caso base: pixel está fora dos limites da imagem ou já é branco
-    if x < 0 or y < 0 or x >= width or y >= height or pixels[y][x] == 0:
-        return
+    # Cria uma fila e adiciona o pixel inicial
+    q = Queue()
+    q.put((x, y))
 
-    # Marca o pixel como branco
-    pixels[y][x] = 0
+    # Enquanto a fila não estiver vazia
+    while not q.empty():
+        # Remove o primeiro elemento da fila
+        x, y = q.get()
 
-    # Chama recursivamente a função para preencher os pixels ao redor (4 vizinhos)
-    flood_fill_background(pixels, width, height, x + 1, y)
-    flood_fill_background(pixels, width, height, x - 1, y)
-    flood_fill_background(pixels, width, height, x, y + 1)
-    flood_fill_background(pixels, width, height, x, y - 1)
+        # Caso base: pixel está fora dos limites da imagem ou já é branco
+        if x < 0 or y < 0 or x >= width or y >= height or pixels[y][x] == 0:
+            continue
 
+        # Marca o pixel como branco
+        pixels[y][x] = 0
+
+        # Adiciona os pixels ao redor na fila
+        q.put((x + 1, y))
+        q.put((x - 1, y))
+        q.put((x, y + 1))
+        q.put((x, y - 1))
 
 def get_holes(pixels, width, height):
     copy_pixels = copy.deepcopy(pixels)
