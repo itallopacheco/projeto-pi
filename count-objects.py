@@ -8,7 +8,26 @@ import shutil
 
 sys.setrecursionlimit(1000000)
 
+"""
+    A funcao count_objects é a funcção principal.
+    Após abrir a imagem e transformar em uma matriz de pixels, ela chama as funções
 
+    add_padding: adiciona uma borda branca de 2 pixels em volta da imagem.
+    get_holes: para ter uma imagem apenas com os buracos.
+    fill_holes: para preencher os buracos e me dar uma imagem com os objetos completos.
+
+    Após isso, ele percorre a imagem e chama a função flood_fill para preencher os objetos.
+    A função flood_fill é recursiva e preenche os pixels ao redor do pixel atual.
+    Ela também retorna se o objeto tem buracos ou não.
+    Após isso chamamos get_diff para pegar a diferença entre a imagem original e a imagem preenchida.
+    Essa diferença é salva em um arquivo .pgm.
+
+    Após isso verificamos o retorno da função flood_fill (que indica se existem buracos naquele objeto ou nao)
+    e incrementamos o contador de objetos.
+
+    No final, chamamos a função print_results para imprimir os resultados.
+    
+"""
 def count_objects(image_path, case=0):
     begin = time.perf_counter()
 
@@ -24,15 +43,18 @@ def count_objects(image_path, case=0):
     width += 4
     height += 4
 
-    # Segment the holes in the image
-    img_holes = get_holes(img_input, width, height)
-
-    # Fill the holes in the image
-    img_filled = fill_holes(img_input, img_holes, width, height)
-
     img_folder = os.path.join('resultados', case)
     if not os.path.exists(img_folder):
         os.makedirs(img_folder)
+
+    # Segment the holes in the image
+    img_holes = get_holes(img_input, width, height)
+    saveImage(width, height, img_holes, img_folder, 'holes')
+
+    # Fill the holes in the image
+    img_filled = fill_holes(img_input, img_holes, width, height)
+    saveImage(width, height, img_filled, img_folder, 'filled')
+
 
     # Count the objects
     count = 0
@@ -55,7 +77,9 @@ def count_objects(image_path, case=0):
     # Print the results
     print_results(end - begin, count, has_holes, case)
 
-
+"""
+    Funcao basica para imprimir os resultados.
+"""
 def print_results(time, count, has_holes, case):
     print(f'--------------- CASE {case} ---------------\nCaso {case} terminou em {time:0.1f} segundos\nTotal de objetos: {count}\nObjetos sem furos: {count - has_holes}\nObjetos com furos: {has_holes}\n')
 
@@ -63,23 +87,27 @@ def print_results(time, count, has_holes, case):
         arquivo.write(
             f'--------------- CASE {case} ---------------\nCaso {case} terminou em {time:0.1f} segundos\nTotal de objetos: {count}\nObjetos sem furos: {count - has_holes}\nObjetos com furos: {has_holes}\n')
 
+"""
+    Essa funcao vai receber uma imagem com objetos, e uma imagem apenas com os buracos da img1.
+    Ela vai preencher os pixeis de branco e vai verificar se o pixel atual é um buraco
+    correspondente na imagem de buracos.
 
+"""
 def flood_fill(pixels, holes, width, height, x, y):
-    # Base case: pixel is outside image bounds or is already white
+    # Caso Base: O pixel está fora dos limites da imagem ou já é branco
     if x < 0 or y < 0 or x >= width or y >= height or pixels[y][x] == 255:
         return False
 
-    # Mark the pixel as white
+    # Pintamos o pixel de branco
     pixels[y][x] = 255
 
-    # If the pixel is a hole, mark the object as having a hole
     has_hole = False
 
-    # Check if the pixel is a hole in the image with only holes
+    # Checa na imagem de buracos se o pixel atual é um buraco
     if holes[y][x] == 0:
         has_hole = True
 
-    # Recursively flood fill surrounding 8 pixels and checks for holes
+    # Preenche os pixeis da vizinhança 8 e tbm verifica se os objetos tem buracos
     has_hole = flood_fill(pixels, holes, width, height,
                           x - 1, y - 1) or has_hole
     has_hole = flood_fill(pixels, holes, width, height, x, y - 1) or has_hole
@@ -97,16 +125,18 @@ def flood_fill(pixels, holes, width, height, x, y):
 
     return has_hole
 
-
+"""
+    Essa funcao vai preencher o fundo de uma imagem com a cor branca.
+"""
 def flood_fill_background(pixels, width, height, x, y):
-    # Base case: pixel is outside image bounds or is already white
+    # Caso base: pixel está fora dos limites da imagem ou já é branco
     if x < 0 or y < 0 or x >= width or y >= height or pixels[y][x] == 0:
         return
 
-    # Mark the pixel as white
+    # Marca o pixel como branco
     pixels[y][x] = 0
 
-    # Recursively flood fill surrounding pixels
+    # Chama recursivamente a função para preencher os pixels ao redor (4 vizinhos)
     flood_fill_background(pixels, width, height, x + 1, y)
     flood_fill_background(pixels, width, height, x - 1, y)
     flood_fill_background(pixels, width, height, x, y + 1)
@@ -119,7 +149,9 @@ def get_holes(pixels, width, height):
     invert_colors(copy_pixels, width, height)
     return copy_pixels
 
-
+"""
+    Essa funcao vai inverter as cores de uma imagem.
+"""
 def invert_colors(pixels, width, height):
     for y in range(height):
         for x in range(width):
@@ -128,19 +160,28 @@ def invert_colors(pixels, width, height):
             elif pixels[y][x] == 255:
                 pixels[y][x] = 0
 
-
+"""
+    Essa funcao vai preencher os buracos em uma imagem.
+"""
 def fill_holes(objects, holes, width, height):
     c_objects = copy.deepcopy(objects)
     c_holes = copy.deepcopy(holes)
+
+    # Define a cor do pixel como 0 (preto) se o pixel for um buraco ou não fizer parte do objeto
     for y in range(height):
         for x in range(width):
             if c_holes[y][x] == 0 or c_objects[y][x] == 0:
                 c_objects[y][x] = 0
+
     return c_objects
 
 
+"""
+    Essa função vai adicionar uma borda de 2 pixeis em volta da imagem.
+    +2 na esquerda; +2 na direita; +2 em cima; +2 em baixo
+"""
 def add_padding(input_pixels):
-    # Create a deep copy of the input_pixels to avoid modifying the original data
+    # As copias sao feitas para nao alterar a imagem original para fins de comparacao e auditoria 
     pixels = copy.deepcopy(input_pixels)
     rows = len(pixels)
     cols = len(pixels[0])
@@ -148,7 +189,7 @@ def add_padding(input_pixels):
     new_cols = cols + 4
     new_pixels = [[255 for j in range(new_cols)] for i in range(new_rows)]
 
-    # Copy the values from the original matrix
+    # Copia os valores da matriz original para a nova matriz com margem de 2 pixels em cada borda
     for i in range(rows):
         for j in range(cols):
             new_pixels[i + 2][j + 2] = pixels[i][j]
@@ -156,10 +197,14 @@ def add_padding(input_pixels):
     return new_pixels
 
 
+"""
+    Essa função vai obter a diferença entre duas imagens.
+"""
 def get_diff(pixels, new_pixels, width, height):
     c_pixels = copy.deepcopy(pixels)
     c_new_pixels = copy.deepcopy(new_pixels)
 
+    # Os pixeis diferentes(que são 0 na imagem original e 255 na nova) são marcados com um valor de cinza
     for y in range(height):
         for x in range(width):
             if c_pixels[y][x] == 0 and c_new_pixels[y][x] == 255:
@@ -168,7 +213,13 @@ def get_diff(pixels, new_pixels, width, height):
     return c_pixels
 
 
+"""
+    Essa função vai salvar a imagem em um arquivo .pgm
+    ela é usada para salvar as imagens que ilustram o processo 
+    do reconhecimento dos objetos.
+"""
 def saveImage(width, height, image, folder_path, distinction=''):
+    # Define o cabeçalho, nome e caminho do arquivo
     img_name = str(distinction) + '.pgm'
     type_img = 'P2' + '\n'
     size = str(width) + ' ' + str(height) + '\n'
@@ -180,7 +231,8 @@ def saveImage(width, height, image, folder_path, distinction=''):
     # Escreve o cabeçalho
     for content in header:
         file_img.write(content)
-
+    
+    # Escreve os pixels
     for i in range(height):
         for j in range(width):
             pixel = str(image[i][j]) + '\n'
@@ -189,23 +241,29 @@ def saveImage(width, height, image, folder_path, distinction=''):
     file_img.close()
 
 
+"""
+    A função startTests é responsável por rodar todos os testes dentro da pasta /testes
+    os resultados ficarão salvos na pasta /resultados, para cada teste será criada uma pasta 
+    com o nome do arquivo de teste, dentro dessa pasta terão arquivos .pgm indicando o processo que 
+    nos levou ao resultado final. 
+"""
 def start_tests():
-    # Change recursion limit
+    # Precisamos aumentar o limite de recursao para imagens maiores.
     sys.setrecursionlimit(1000000)
 
-    # Load all images from the 'testes' folder
+    # Busca todos os arquivos dentro da pasta /testes e verifica se ela está vazia.
     filenames = next(walk('./testes'), (None, None, []))[2]
-
     if filenames == []:
         print("No images found in the 'testes' folder")
 
-    # Clear previous files
+    # Limpa os arquivos de resultados anteriores.
     open('./resultados.txt', 'w').close()
 
-    # Calls the count_objects function for each image
+    # Chama a função count_objects para cada arquivo encontrado.
     for file in filenames:
         count_objects('./testes/' + file, file.split(".")[0])
 
+    # Ao final de tudo pergunta se o usuário deseja apagar a pasta /resultados
     var = input("Deseja apagar a pasta 'resultados'? (s/n): ")
     if var == 's':
         shutil.rmtree('./resultados')
@@ -215,5 +273,44 @@ def start_tests():
         print("Opção inválida")
 
 
-# Run the tests
+#Run the tests
 start_tests()
+
+
+
+"""
+
+ # Open the image file
+img = Image.open('testes/100x100.pbm')
+
+
+# Get the pixel data as a list of lists
+pixels = list(img.getdata())
+width, height = img.size
+img_input = [pixels[i * width:(i + 1) * width] for i in range(height)]
+
+img_input = add_padding(img_input)
+width += 4
+height += 4
+
+# Get the holes
+img_holes = get_holes(img_input, width, height)
+saveImage(width, height, img_holes, './resultados', 'holes')
+# Fill the holes in original image
+img_filled = fill_holes(img_input, img_holes, width, height)
+saveImage(width, height, img_filled, './resultados', 'filled')
+
+diff = get_diff(img_input, img_input, width, height)
+saveImage(width, height, diff, './resultados', 'diff')
+
+for y in range(height):
+        for x in range(width):
+            # If we find a black pixel, start a new object
+            if img_filled[y][x] == 0:
+                # Flood fill the object with white
+                has_hole = flood_fill(img_filled, img_holes, width, height, x, y)
+                # Save the image
+                saveImage(width, height, img_filled, './resultados', 'filled')
+                diff = get_diff(img_input, img_filled, width, height)
+                saveImage(width, height, diff, './resultados', 'diff')
+"""
