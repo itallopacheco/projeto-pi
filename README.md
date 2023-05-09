@@ -25,4 +25,4 @@ Ao finalizar, o programa exibirá os resultados no terminal, como também criar�
 - 5 - Tudo pronto, agora você pode rodar o arquivo count-objects.py com ```python count-objects.py ``` para executar o programa para todas as imagens pré escolhidas na pasta /testes OU você pode alterar o conteúdo da pasta /testes para executar o programa nas imagens de sua preferência
 
 # Observações 
-O programa precisa ser otimizado, portanto temos uma limitação nos tamanhos das imagens, nos exemplos que nós sugerimos, usamos imagens menores que 150x150 pixels, testadas em três computadores diferentes. Portanto talvez seja sugerido testar qual o tamanho máximo de imagem sua máquina conseguiria rodar. 
+O programa foi atualizado substituindo o flood-fill recursivo por uma versao usando pilha, isso resolveu em partes o problema de otimização, sendo agora possível rodar para imagens maiores (o tempo de espera vai variar de máquina pra máquina). 
